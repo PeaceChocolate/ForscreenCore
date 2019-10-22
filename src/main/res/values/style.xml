@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="eduai_forscreen_step_text_style">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:background">@drawable/eduai_forscreen_bg_step_code</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/eduai_color_text_color</item>
+        <item name="android:textSize">40sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="eduai_forscreen_step_text_content_style">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:lineSpacingExtra">3dp</item>
+        <item name="android:textColor">@color/eduai_color_text_color</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+</resources>

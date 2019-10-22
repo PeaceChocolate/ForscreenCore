@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>小度在校投屏</title>
+</head>
+<style>
+	body{
+		margin: 0;
+		padding: 0;
+		position: relative;
+		/* overflow: hidden; */
+	}
+	#img-wrap {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		padding: 0;
+		margin: 0 auto;
+		background: black;
+	}
+    #show {
+		position: absolute;
+		transform: translate(-50%, -50%);
+		padding: 0;
+		top: 50%;
+		left: 50%;
+		height: 100%;
+		width: 100%;
+		-webkit-transform: translate(-50%, -50%);
+		-moz-transform: translate(-50%, -50%);
+		-ms-transform: translate(-50%, -50%);
+		-o-transform: translate(-50%, -50%);
+    }
+	#info-container{
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 530px;
+		height: 269px;
+		margin-left: -260px;
+		margin-top: 232px;
+		background: #FFFFFF;
+		display: none;
+	}
+	#info-box{
+		width: 520px;
+		height: 232px;
+		background: #FFFFFF;
+		box-shadow: 0 2px 4px 0 rgba(0,0,0,0.10);
+		overflow: hidden;
+	}
+	#err-title{
+		padding-top: 36px;
+		text-align: center;
+		font: 20px/28px PingFangSC-Medium;
+		color: #333333;
+	}
+	#err-text{
+		margin-top: 26px;
+		text-align: center;
+		font-family: PingFangSC-Regular;
+		font-size: 16px;
+		color: #999999;
+	}
+	#refresh{
+		padding: 10px 28px;
+		width: 64px;
+		height: 22px;
+		margin: 26px auto;
+		font: 16px/22px PingFangSC-Regular;
+		color: #333333;
+		background: #F7F7F7;
+		border: 1px solid #E5E5E5;
+		border-radius: 2px;
+		cursor: pointer;
+	}
+	#refresh:hover{
+		background: #e6e6e6;
+		border-color: #DDDDDD;
+	}
+	#info-container #err-tips{
+		text-align: center;
+		font-family: PingFangSC-Regular;
+		font-size: 14px;
+		color: #999999;
+	}
+	#info-container #err-tips .speci-color{
+		color: #00B377;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	#info-container #err-tips .speci-color:hover{
+		text-decoration: underline;
+	}
+</style>
+<body>
+	<div id="img-wrap">
+		<div id="show"></div>
+	</div>
+	</div>
+	<div id="info-container">
+		<div id='info-box'>
+			<h3 id='err-title'>投屏连接错误</h3>
+			<p id='err-text'>请确认小度在校的网络连接正常，点击下方按钮刷新重试</p>
+			<div id='refresh' onclick='reloadPage()'>刷新重试</div>
+		</div>
+		<p id='err-tips'>若刷新重试仍无法连接，请 <a class='speci-color' href='https://study.baidu.com/aiedu/miracast' target='_self'>返回小度在校首页</a> 重新进行投屏</p>
+	</div>
+</body>
+<script type="text/javascript">
+	function reloadPage() {
+		window.location.reload();
+	}
+    window.onload = function() {
+		init();
+         //初始化websocket对象
+        var ws = {};
+        //init()方法为了初始化ws的一些具体回调函数，在body的onload事件中触发
+        function init()
+        {
+			var localAddress = window.location.href;
+            var arr = localAddress.split("/");
+            var ip = "";
+            if(arr.length>=3){
+                ip = arr[2];
+                ips = arr[2].split(":");
+                ip = ips[0];
+            }
+			var htmlAddress = "ws://" + ip + ":9010";
+			// var htmlAddress = "ws://172.24.91.105:9010";
+            //链接服务端
+            ws = new WebSocket(htmlAddress);
+            //配置客户端连接成功的回调方法
+            ws.onopen=function(event){
+                console.log("open...");
+            };
+			//创建img标签来显示服务端传来的字节数组
+			let width = getBody()[0];
+			let height = getBody()[1];
+			initWrap(width, height);
+            var img =document.createElement("img");
+			img.setAttribute("id", "img-print");
+            //将标签添加到id为show的div中否则，即便是有img也看不见
+            document.getElementById("show").appendChild(img);
+
+			let imgEle = document.getElementById('img-print');
+			img.onload = function() {
+				imgEle.style.display = 'block';
+				imgEle.style.maxWidth = width + 'px';
+				imgEle.style.maxHeight = height + 'px';
+				imgEle.style.width = 'auto';
+				imgEle.style.height = 'auto';
+				let show = document.getElementById('show');
+				let w = imgEle.offsetWidth;
+				let h = imgEle.offsetHeight;
+				show.style.width = w + 'px';
+				show.style.height = h + 'px';
+			}
+
+			window.onresize = function() {
+				let w = document.documentElement.clientWidth;
+				let h = document.documentElement.clientHeight;
+				initWrap(w, h);
+				resizeImg(w, h);
+			}
+           //向服务端发送信息，这样服务端就会触发SendImage.java的getMessage方法，从而该方法回传给客户端一个图片
+			ws.onerror = function(event) {
+				document.getElementById("img-wrap").style.display = 'none';
+				document.getElementById("info-container").style.display = 'block';
+			}
+			ws.onclose = function(event) {
+				document.getElementById("img-wrap").style.display = 'none';
+				document.getElementById("info-container").style.display = 'block';
+			}
+            //配置客户端处理消息的回调方法
+            ws.onmessage = function(event){
+                //创建FileReader对象，该对象时html5中的特有对象，详细用法可以
+                //参照html5相关资料
+                var reader = new FileReader();
+                //设置FileReader对象的读取文件回调方法
+                reader.onload=function(eve){
+                       //判断文件是否读取完成
+                       if(eve.target.readyState==FileReader.DONE)
+                       {
+                            //读取文件完成后内容放在this===当前
+                            //fileReader对象的result属性中，将该内容赋值img标签
+                            //浏览器就可以自动解析内容格式并且渲染在浏览器中
+                            img.src=this.result;
+                         }
+                        };
+                        //调用FileReader的readAsDataURL的方法自动就会触发onload事件
+                        reader.readAsDataURL(event.data);
+                 };
+           }
+
+           function sendMsg()
+           {
+               //发送的内容为任意字符，主要为了触发对应的方法
+               ws.send("hello");
+	       }
+			// 获取浏览器的宽和高
+			function getBody() {
+				let d = document.documentElement;
+				let domBody = document.body;
+				let width = 0,
+					heig = 0;
+				if (d && d.clientHeight) {
+					height = d.clientHeight;
+					width = d.clientWidth;
+				} else if (domBody) {
+					height = domBody.clientHeight;
+					width = domBody.clientWidth;
+				}
+				return [width, height];
+			}
+			// Img外层的宽高
+			function initWrap(width, height) {
+				let wrapper = document.getElementById('img-wrap');
+				wrapper.style.width = width + 'px';
+				wrapper.style.height = height + 'px';
+			}
+			function resizeImg(width, height) {
+				let show = document.getElementById('show');
+				let imgEle = document.getElementById('img-print');
+				show.style.width = imgEle.offsetWidth + 'px';
+				imgEle.style.maxWidth = width + 'px';
+				imgEle.style.maxHeight = height + 'px';
+			}
+    }
+</script>
+
+</html>

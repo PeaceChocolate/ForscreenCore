@@ -1,0 +1,15 @@
+apply plugin: 'com.android.library'
+
+android {
+
+}
+
+dependencies {
+    implementation "org.java-websocket:Java-WebSocket:1.4.0"
+    implementation project(':lib-base')
+    implementation project(':lib-utils')
+    implementation project(':lib-cui')
+    implementation project(':lib-ui')
+    implementation 'com.android.support:appcompat-v7:27.+'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+}

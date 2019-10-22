@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">plugin-educloud-touping</string>
+    <string name="forscreen_page_title">小度在校投屏</string>
+    <string name="forscreen_dec">投屏码</string>
+    <string name="forscreen_retry">重试</string>
+    <string name="forscreen_net_error_tips">网络异常，请检查后重试</string>
+    <string name="forscreen_step_three">进入\"开始投屏\"中的\n输入以上投屏码</string>
+    <string name="forscreen_step_two">进入\"AI教育\"中的\n\"小度在校\"</string>
+    <string name="forscreen_step_one">电脑打开智慧课堂\nstudy.baidu.com</string>
+</resources>
